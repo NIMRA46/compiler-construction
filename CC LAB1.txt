@@ -1,0 +1,48 @@
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    static void Main()
+    {
+        // Get the user's name and build a character class for the allowed lowercase letters.
+        Console.WriteLine("Enter your name:");
+        string name = Console.ReadLine();
+
+        // Convert the name to lowercase, filter only letters, and take distinct characters.
+        string lowerName = new string(name.ToLower().Where(char.IsLetter).Distinct().ToArray());
+        // Build a regex character class. For example, if name is "faizan", lowerName becomes "faizan"
+        // and the character class will be: [faizan]
+        string nameCharClass = $"[{Regex.Escape(lowerName)}]";
+
+        // Ask for the password to validate.
+        Console.WriteLine("Enter a password to check:");
+        string password = Console.ReadLine();
+
+        if (IsValidPassword(password, nameCharClass))
+            Console.WriteLine("Password is valid!");
+        else
+            Console.WriteLine("Password does not meet the criteria.");
+    }
+
+    static bool IsValidPassword(string password, string nameCharClass)
+    {
+        // Build the regex pattern:
+        // 1. (?=.*[A-Z])                     → At least one uppercase letter.
+        // 2. (?=(?:.*[!@#$%^&*]){2,})          → At least two special characters.
+        // 3. (?=(?:.*<nameCharClass>){4,})     → At least four occurrences of letters from the user's name.
+        // 4. (?=(?:.*[024]){2})(?!.*[024].*[024].*[024]) → Exactly two digits from [0,2,4].
+        // 5. .{9,12}                         → Total length between 9 and 12 characters.
+        string pattern =
+            @"^" +
+            @"(?=.*[A-Z])" +
+            @"(?=(?:.*[!@#$%^&*]){2,})" +
+            @"(?=(?:.*" + nameCharClass + @"){4,})" +
+            @"(?=(?:.*[024]){2})(?!.*[024].*[024].*[024])" +
+            @".{9,12}$";
+
+        return Regex.IsMatch(password, pattern);
+    }
+}
+
